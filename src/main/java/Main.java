@@ -11,7 +11,8 @@ public class Main {
             nTests = 10;
 
     public static final boolean
-            USE_THREAD_LOCAL_RANDOM = true;
+            USE_THREAD_LOCAL_RANDOM = true,
+            USE_NESTED_LOCK_COSIEK = true;
 
     public static void main(String[] args) {
         long meanRealTime = 0, meanCpuTime = 0;
@@ -19,10 +20,10 @@ public class Main {
         for (int test = 0; test < nTests; test++) {
             ArrayList<Thread> threads = new ArrayList<>();
 
-            /*
-             * TU USTAWIAMY TYP COŚKA
-             */
-            ICosiek cosiek = new Cosiek(maxRandom, maxBuffer, producers, consumers);
+            ICosiek cosiek = USE_NESTED_LOCK_COSIEK ?
+                    new NestedLockCosiek(maxRandom, maxBuffer, producers, consumers) :
+                    new Cosiek(maxRandom, maxBuffer, producers, consumers);
+
 
             // Tworzymy producentów
             for(int id = 0; id < producers; id++) {
@@ -45,12 +46,14 @@ public class Main {
 
             // Pomiar czasu
             timeMeasure.start();
-            timeMeasure.print();
+            // timeMeasure.print();
             meanCpuTime = (meanCpuTime / (test + 1) * test + timeMeasure.getCpuTime() / (test + 1));
             meanRealTime = (meanRealTime / (test + 1) * test + timeMeasure.getRealTime() / (test + 1));
         }
 
-        System.out.printf("%-30s%d\n", "Liczba testów: ", nTests);
+        System.out.printf("%-30s%d\n", "Liczba testów:", nTests);
+        System.out.printf("%-30s%s\n", "Typ bufora:", USE_NESTED_LOCK_COSIEK ? "3-lock" : "4-condition");
+        System.out.printf("%-30s%s\n", "Typ RNG:", USE_THREAD_LOCAL_RANDOM ? "Thread-Local" : "Global");
         System.out.printf("%-30s%sns\n", "Średni czas procesora:", TimeMeasure.deltaToString(meanCpuTime));
         System.out.printf("%-30s%sns\n", "Średni czas rzeczywisty: ", TimeMeasure.deltaToString(meanRealTime));
     }
