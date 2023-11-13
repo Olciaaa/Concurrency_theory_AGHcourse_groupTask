@@ -1,50 +1,53 @@
 import java.util.ArrayList;
-import java.util.Random;
 
 public class Main {
     private static final int
             maxBuffer = 20,
-            producers = 2,
-            consumers = 1,
+            producers = 20,
+            consumers = 20,
             maxRandom = maxBuffer / 2,
             producentCounter = 10000,
-            consumerCounter = 10000;
+            consumerCounter = 10000,
+            nTests = 10;
 
-    private static final Cosiek counter = new Cosiek(maxBuffer, producers, consumers);
-    private static final ArrayList<Thread> _threads = new ArrayList<>();
-
+    public static final boolean
+            USE_THREAD_LOCAL_RANDOM = true;
 
     public static void main(String[] args) {
-        long seed = 1;
+        long meanRealTime = 0, meanCpuTime = 0;
 
-        for(int j = 0; j < producers; j++) {
-            int id = j;
-            Thread producent = new Thread(() -> {
-                for (int i = 0; i < producentCounter; i++) {
-                    Random r = new Random();
-                    r.setSeed(seed);
-                    counter.producer(r.nextInt(maxRandom - 1) + 1, id);
-                }
-            });
-            _threads.add(producent);
+        for (int test = 0; test < nTests; test++) {
+            ArrayList<Thread> threads = new ArrayList<>();
+            Cosiek cosiek = new Cosiek(maxRandom, maxBuffer, producers, consumers);
+
+            // Tworzymy producentów
+            for(int id = 0; id < producers; id++) {
+                Producer producent = new Producer(cosiek, producentCounter, id);
+                threads.add(producent);
+            }
+
+            // Tworzymy konsumentów
+            for(int id = 0; id < consumers; id++) {
+                Consumer consument = new Consumer(cosiek, consumerCounter, id);
+                threads.add(consument);
+            }
+
+            // Inicjalizacja pomiaru czasu
+            TimeMeasure timeMeasure = new TimeMeasure(threads);
+
+            for (Thread t : threads) {
+                t.start();
+            }
+
+            // Pomiar czasu
+            timeMeasure.start();
+            timeMeasure.print();
+            meanCpuTime = (meanCpuTime / (test + 1) * test + timeMeasure.getCpuTime() / (test + 1));
+            meanRealTime = (meanRealTime / (test + 1) * test + timeMeasure.getRealTime() / (test + 1));
         }
-        for(int j = 0; j < consumers; j++) {
-            int id = j;
-            Thread consument = new Thread(() -> {
-                for(int i = 0; i < consumerCounter; i++) {
-                    Random r = new Random();
-                    r.setSeed(seed);
-                    counter.consumer(r.nextInt(maxRandom-1) + 1, id);
-                }
-            });
-            _threads.add(consument);
-        }
 
-
-        TimeMeasure timeMeasure = new TimeMeasure(_threads);
-        for (Thread t : _threads)
-            t.start();
-
-        timeMeasure.start();
+        System.out.printf("%-30s%d\n", "Liczba testów: ", nTests);
+        System.out.printf("%-30s%sns\n", "Średni czas rzeczywisty: ", TimeMeasure.deltaToString(meanRealTime));
+        System.out.printf("%-30s%sns\n", "Średni czas procesora:", TimeMeasure.deltaToString(meanCpuTime));
     }
 }

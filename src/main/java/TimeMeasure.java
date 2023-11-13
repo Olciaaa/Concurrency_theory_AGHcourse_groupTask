@@ -8,13 +8,14 @@ public class TimeMeasure extends Thread {
     ThreadMXBean _threadMXBean = ManagementFactory.getThreadMXBean();
     Collection<Thread> _threads;
     private final long _startTime;
+    private long _realTime = 0, _cpuTime = 0;
 
     public TimeMeasure(Collection<Thread> threads) {
         _threads = threads;
         _startTime = System.nanoTime();
     }
 
-    private String deltaToString(long delta) {
+    public static String deltaToString(long delta) {
         StringBuilder s = new StringBuilder();
         while (delta > 0) {
             int frag = (int) (delta % 1000);
@@ -24,6 +25,19 @@ public class TimeMeasure extends Thread {
         }
 
         return s.toString().replaceFirst("^0+(?!$)", "");
+    }
+
+    public long getCpuTime() {
+        return _cpuTime;
+    }
+
+    public long getRealTime() {
+        return _realTime;
+    }
+
+    public void print() {
+        System.out.printf("%-20s%sns\n", "Czas rzeczywisty: ", deltaToString(_realTime));
+        System.out.printf("%-20s%sns\n", "Czas procesora:", deltaToString(_cpuTime));
     }
 
     public void start() {
@@ -40,9 +54,7 @@ public class TimeMeasure extends Thread {
 
 
         // Pomiar czasu rzeczywistego
-        long delta = System.nanoTime() - _startTime;
-        System.out.printf("%-20s%sns\n", "Czas rzeczywisty: ", deltaToString(delta));
-
+        _realTime = System.nanoTime() - _startTime;
 
         // Pomiar czasu procesora
         LinkedList<Long> times = new LinkedList<>();
@@ -55,8 +67,7 @@ public class TimeMeasure extends Thread {
         // wątek zakończony pracował zwykle najdłużej, więc przybliżamy jego czas najdłuższym z pozostałych
         times.add(Collections.max(times));
 
-        long total = times.stream().mapToLong(Long::longValue).sum();
-        System.out.printf("%-20s%sns\n", "Czas procesora:", deltaToString(total));
+        _cpuTime = times.stream().mapToLong(Long::longValue).sum();
 
 
         // Zatrzymanie pozostałych wątków
