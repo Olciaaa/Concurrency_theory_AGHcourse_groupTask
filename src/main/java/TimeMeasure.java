@@ -1,8 +1,12 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.lang.management.ThreadMXBean;
+import com.opencsv.CSVWriter;
 
 public class TimeMeasure extends Thread {
     ThreadMXBean _threadMXBean = ManagementFactory.getThreadMXBean();
@@ -10,7 +14,7 @@ public class TimeMeasure extends Thread {
     private final long _startTime;
     private long _realTime = 0, _cpuTime = 0;
 
-    public TimeMeasure(Collection<Thread> threads) {
+    public TimeMeasure(Collection<Thread> threads) throws IOException {
         _threads = threads;
         _startTime = System.nanoTime();
     }
@@ -38,6 +42,11 @@ public class TimeMeasure extends Thread {
     public void print() {
         System.out.printf("%-20s%sns\n", "Czas procesora:", deltaToString(_cpuTime));
         System.out.printf("%-20s%sns\n", "Czas rzeczywisty: ", deltaToString(_realTime));
+    }
+
+    public void save(CSVWriter writer) {
+        String[] data = {Long.toString(_cpuTime), Long.toString(_realTime)};
+        writer.writeNext(data);
     }
 
     public void start() {

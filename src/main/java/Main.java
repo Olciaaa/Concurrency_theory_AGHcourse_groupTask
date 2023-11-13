@@ -1,3 +1,8 @@
+import com.opencsv.CSVWriter;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Main {
@@ -14,7 +19,13 @@ public class Main {
             USE_THREAD_LOCAL_RANDOM = true,
             USE_NESTED_LOCK_COSIEK = true;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        File file = new File("measures.CSV");
+
+        CSVWriter writer = new CSVWriter(new FileWriter(file));
+        String[] header = {"Czas procesora", "Czas rzeczywisty"};
+        writer.writeNext(header);
+
         long meanRealTime = 0, meanCpuTime = 0;
 
         for (int test = 0; test < nTests; test++) {
@@ -46,7 +57,7 @@ public class Main {
 
             // Pomiar czasu
             timeMeasure.start();
-            // timeMeasure.print();
+            timeMeasure.save(writer);
             meanCpuTime = (meanCpuTime / (test + 1) * test + timeMeasure.getCpuTime() / (test + 1));
             meanRealTime = (meanRealTime / (test + 1) * test + timeMeasure.getRealTime() / (test + 1));
         }
@@ -56,5 +67,7 @@ public class Main {
         System.out.printf("%-30s%s\n", "Typ RNG:", USE_THREAD_LOCAL_RANDOM ? "Thread-Local" : "Global");
         System.out.printf("%-30s%sns\n", "Średni czas procesora:", TimeMeasure.deltaToString(meanCpuTime));
         System.out.printf("%-30s%sns\n", "Średni czas rzeczywisty: ", TimeMeasure.deltaToString(meanRealTime));
+
+        writer.close();
     }
 }
