@@ -36,8 +36,8 @@ public class TimeMeasure extends Thread {
     }
 
     public void print() {
-        System.out.printf("%-20s%sns\n", "Czas rzeczywisty: ", deltaToString(_realTime));
         System.out.printf("%-20s%sns\n", "Czas procesora:", deltaToString(_cpuTime));
+        System.out.printf("%-20s%sns\n", "Czas rzeczywisty: ", deltaToString(_realTime));
     }
 
     public void start() {

@@ -1,8 +1,8 @@
 public class Consumer extends Thread {
     private final int _counter, _id;
-    private final Cosiek _cosiek;
+    private final ICosiek _cosiek;
 
-    public Consumer(Cosiek cosiek, int counter, int id) {
+    public Consumer(ICosiek cosiek, int counter, int id) {
         _counter = counter;
         _cosiek = cosiek;
         _id = id;

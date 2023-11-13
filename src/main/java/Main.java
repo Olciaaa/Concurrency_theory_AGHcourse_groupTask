@@ -3,8 +3,8 @@ import java.util.ArrayList;
 public class Main {
     private static final int
             maxBuffer = 20,
-            producers = 20,
-            consumers = 20,
+            producers = 6,
+            consumers = 6,
             maxRandom = maxBuffer / 2,
             producentCounter = 10000,
             consumerCounter = 10000,
@@ -18,7 +18,11 @@ public class Main {
 
         for (int test = 0; test < nTests; test++) {
             ArrayList<Thread> threads = new ArrayList<>();
-            Cosiek cosiek = new Cosiek(maxRandom, maxBuffer, producers, consumers);
+
+            /*
+             * TU USTAWIAMY TYP COŚKA
+             */
+            ICosiek cosiek = new Cosiek(maxRandom, maxBuffer, producers, consumers);
 
             // Tworzymy producentów
             for(int id = 0; id < producers; id++) {
@@ -47,7 +51,7 @@ public class Main {
         }
 
         System.out.printf("%-30s%d\n", "Liczba testów: ", nTests);
-        System.out.printf("%-30s%sns\n", "Średni czas rzeczywisty: ", TimeMeasure.deltaToString(meanRealTime));
         System.out.printf("%-30s%sns\n", "Średni czas procesora:", TimeMeasure.deltaToString(meanCpuTime));
+        System.out.printf("%-30s%sns\n", "Średni czas rzeczywisty: ", TimeMeasure.deltaToString(meanRealTime));
     }
 }

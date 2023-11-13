@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Cosiek{
+public class Cosiek implements ICosiek {
     //właściwa ilość bufora: dwa razy większy niż maksymalne n które przekazuję do funkcji producer/konsumer. Inaczej się zakleszcza.
     //Przy porcjach większych niż 1 (u nas random), program zagładza wątki. Żeby wyeliminować efekt zagłodzenia, trzeba usunąć rozkazy
     //pójścia wątku na koniec i wątek któremu nie udało się wejść do monitora przekierować na początek kolejki.

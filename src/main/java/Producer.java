@@ -1,8 +1,8 @@
 public class Producer extends Thread {
     private final int _counter, _id;
-    private final Cosiek _cosiek;
+    private final ICosiek _cosiek;
 
-    public Producer(Cosiek cosiek, int counter, int id) {
+    public Producer(ICosiek cosiek, int counter, int id) {
         _counter = counter;
         _cosiek = cosiek;
         _id = id;
