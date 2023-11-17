@@ -5,7 +5,7 @@ public class Consumer extends Thread {
     private final int counter, id;
     private final ICosiek cosiek;
     private static final int SEED = 1;
-    private final Random commonRandom;
+    private Random commonRandom;
     private final int maxRandom;
 
     public Consumer(ICosiek cosiek, int counter, int id, int maxRandom) {

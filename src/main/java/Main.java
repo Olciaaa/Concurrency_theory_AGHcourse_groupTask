@@ -6,14 +6,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Main {
-    private static int
+    private static final int
             maxBuffer = 20,
             producers = 6,
             consumers = 6,
-            maxRandom = maxBuffer / 2,
             producentCounter = 10000,
             consumerCounter = 10000,
             nTests = 10;
+
+    private static int maxRandom = maxBuffer / 2;
 
     public static final boolean USE_THREAD_LOCAL_RANDOM = false;
 
