@@ -77,9 +77,8 @@ public class Main {
         String[] header = {"typ bufora", "średni czas procesora", "średni czas rzeczywisty", "maksymalna porcja", "bufor", "ilość operacji", "typ random"};
         writer.writeNext(header);
 
-
-        for(int i = 2; i < 10; i++) {
-            maxRandom = maxBuffer / i;
+        for(int i = 2; i < maxBuffer / 2; i++) {
+            maxRandom = i;
 
             USE_NESTED_LOCK_COSIEK = false;
             test(writer);
