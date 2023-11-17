@@ -1,40 +1,35 @@
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NestedLockCosiek implements ICosiek {
-    private final int maxBuffer;
-    public ArrayList<Integer> amount;
+    private final int _maxBufferLength;
+    private int _nItems = 0, _takePtr = 0, _putPtr = 0;
+    public int[] _buffer;
 
     private final ReentrantLock
-            commonLock,
-            consumerLock,
-            producerLock;
+            commonLock = new ReentrantLock(),
+            consumerLock = new ReentrantLock(),
+            producerLock = new ReentrantLock();
 
-    private final Condition commonCondition;
+    private final Condition commonCondition = commonLock.newCondition();
 
     public NestedLockCosiek(int maxBuffer) {
-        amount = new ArrayList<>();
-        this.maxBuffer = maxBuffer;
-
-        commonLock = new ReentrantLock();
-        consumerLock = new ReentrantLock();
-        producerLock = new ReentrantLock();
-        commonCondition = commonLock.newCondition();
+        _maxBufferLength = maxBuffer;
+        _buffer = new int[_maxBufferLength];
     }
 
     public void produce(int idx, int portion) throws InterruptedException {
         producerLock.lock();
         commonLock.lock();
 
-        while (maxBuffer - amount.size() < portion) {
+        while (_nItems + portion > _maxBufferLength) {
             commonCondition.await();
         }
 
-        for(int i = 0; i < portion; i++) {
-            amount.add(1);
+        for (int i = 0; i < portion; i++) {
+            _buffer[_putPtr] = 1;
+            _putPtr = (_putPtr + 1) % _maxBufferLength;
+            _nItems++;
         }
 
         commonCondition.signal();
@@ -46,12 +41,14 @@ public class NestedLockCosiek implements ICosiek {
         consumerLock.lock();
         commonLock.lock();
 
-        while (amount.size() - portion < 0) {
+        while (_nItems - portion < 0) {
             commonCondition.await();
         }
 
-        for(int i = 0; i < portion; i++) {
-            amount.remove(0);
+        for (int i = 0; i < portion; i++) {
+            _buffer[_takePtr] = 0;
+            _takePtr = (_takePtr + 1) % _maxBufferLength;
+            _nItems--;
         }
 
         commonCondition.signal();
@@ -60,6 +57,6 @@ public class NestedLockCosiek implements ICosiek {
     }
 
     public synchronized void printAmount() {
-        System.out.println("Counter value: " + amount);
+        System.out.println("Counter value: " + _nItems);
     }
 }

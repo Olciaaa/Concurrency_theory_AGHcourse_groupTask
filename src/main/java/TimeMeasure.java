@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.lang.management.ThreadMXBean;
 import com.opencsv.CSVWriter;
 
-public class TimeMeasure extends Thread {
+public class TimeMeasure {
     ThreadMXBean _threadMXBean = ManagementFactory.getThreadMXBean();
     Collection<Thread> _threads;
     private final long _startTime;
@@ -75,7 +75,6 @@ public class TimeMeasure extends Thread {
         // hack na uzupełnienie -1 z zakończonego wątku, +- działa
         // wątek zakończony pracował zwykle najdłużej, więc przybliżamy jego czas najdłuższym z pozostałych
         times.add(Collections.max(times));
-
         _cpuTime = times.stream().mapToLong(Long::longValue).sum();
 
 

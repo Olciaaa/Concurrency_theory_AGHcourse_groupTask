@@ -1,32 +1,27 @@
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.ThreadLocalRandom;
+
 
 public class Cosiek implements ICosiek {
-    private final int maxBuffer;
-    public ArrayList<Integer> amount;
-    private final ReentrantLock lock;
+    private final int _maxBufferLength;
+    private int _nItems = 0, _takePtr = 0, _putPtr = 0;
+    public int[] _buffer;
 
+    private final ReentrantLock lock = new ReentrantLock();
     private final Condition
-            firstConsumerCondition,
-            firstProducerCondition,
-            consumersCondition,
-            producersCondition;
+            firstConsumerCondition = lock.newCondition(),
+            firstProducerCondition = lock.newCondition(),
+            consumersCondition = lock.newCondition(),
+            producersCondition = lock.newCondition();
 
     private boolean
             isFirstProducerWaiting = false,
             isFirstConsumerWaiting = false;
 
+
     public Cosiek(int maxBuffer) {
-        amount = new ArrayList<>();
-        lock = new ReentrantLock();
-        firstConsumerCondition = lock.newCondition();
-        firstProducerCondition = lock.newCondition();
-        producersCondition = lock.newCondition();
-        consumersCondition = lock.newCondition();
-        this.maxBuffer = maxBuffer;
+        _maxBufferLength = maxBuffer;
+        _buffer = new int[_maxBufferLength];
     }
 
     public void produce(int idx, int portion) throws InterruptedException {
@@ -36,16 +31,20 @@ public class Cosiek implements ICosiek {
             producersCondition.await();
         }
 
-        while (maxBuffer - amount.size() < portion) {
+        while (_nItems + portion > _maxBufferLength) {
             isFirstProducerWaiting = true;
             firstProducerCondition.await();
         }
+        isFirstProducerWaiting = false;
 
-        for(int i = 0; i < portion; i++) {
-            amount.add(1);
+
+        for (int i = 0; i < portion; i++) {
+            _buffer[_putPtr] = 1;
+            _putPtr = (_putPtr + 1) % _maxBufferLength;
+            _nItems++;
         }
 
-        isFirstProducerWaiting = false;
+
         producersCondition.signal();
         firstConsumerCondition.signal();
 
@@ -59,16 +58,20 @@ public class Cosiek implements ICosiek {
             consumersCondition.await();
         }
 
-        while (amount.size() - portion < 0) {
+        while (_nItems - portion < 0) {
             isFirstConsumerWaiting = true;
             firstConsumerCondition.await();
         }
+        isFirstConsumerWaiting = false;
 
-        for(int i = 0; i < portion; i++) {
-            amount.remove(0);
+
+        for (int i = 0; i < portion; i++) {
+            _buffer[_takePtr] = 0;
+            _takePtr = (_takePtr + 1) % _maxBufferLength;
+            _nItems--;
         }
 
-        isFirstConsumerWaiting = false;
+
         consumersCondition.signal();
         firstProducerCondition.signal();
 
@@ -76,6 +79,6 @@ public class Cosiek implements ICosiek {
     }
 
     public synchronized void printAmount() {
-        System.out.println("Counter value: " + amount);
+        System.out.println("Counter value: " + _nItems);
     }
 }
