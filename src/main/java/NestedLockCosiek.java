@@ -9,68 +9,54 @@ public class NestedLockCosiek implements ICosiek {
     public ArrayList<Integer> amount;
 
     private final ReentrantLock
-            _commonLock = new ReentrantLock(),
-            _consumerLock = new ReentrantLock(),
-            _producerLock = new ReentrantLock();
+            commonLock,
+            consumerLock,
+            producerLock;
 
-    private final Condition _commonCondition = _commonLock.newCondition();
+    private final Condition commonCondition;
 
-    private final int _maxRandom;
-
-    private static final int SEED = 1;
-    private static Random _commonRandom;
-
-
-    public NestedLockCosiek(int maxRandom, int maxBuffer, int producers, int consumers) {
+    public NestedLockCosiek(int maxBuffer) {
         amount = new ArrayList<>();
         this.maxBuffer = maxBuffer;
-        _maxRandom = maxRandom;
 
-        if (!Main.USE_THREAD_LOCAL_RANDOM) {
-            _commonRandom = new Random(SEED);
-        }
+        commonLock = new ReentrantLock();
+        consumerLock = new ReentrantLock();
+        producerLock = new ReentrantLock();
+        commonCondition = commonLock.newCondition();
     }
 
-    public void producer(int idx) throws InterruptedException {
-        _producerLock.lock();
-        _commonLock.lock();
+    public void produce(int idx, int portion) throws InterruptedException {
+        producerLock.lock();
+        commonLock.lock();
 
-        int n = Main.USE_THREAD_LOCAL_RANDOM
-                ? ThreadLocalRandom.current().nextInt(_maxRandom - 1) + 1
-                : _commonRandom.nextInt(_maxRandom - 1) + 1;
-
-        while (maxBuffer - amount.size() < n) {
-            _commonCondition.await();
+        while (maxBuffer - amount.size() < portion) {
+            commonCondition.await();
         }
 
-        for(int i = 0; i < n; i++) {
+        for(int i = 0; i < portion; i++) {
             amount.add(1);
         }
 
-        _commonCondition.signal();
-        _commonLock.unlock();
-        _producerLock.unlock();
+        commonCondition.signal();
+        commonLock.unlock();
+        producerLock.unlock();
     }
 
-    public void consumer(int idx) throws InterruptedException {
-        _consumerLock.lock();
-        _commonLock.lock();
+    public void consume(int idx, int portion) throws InterruptedException {
+        consumerLock.lock();
+        commonLock.lock();
 
-        int n = Main.USE_THREAD_LOCAL_RANDOM
-                ? ThreadLocalRandom.current().nextInt(_maxRandom - 1) + 1
-                : _commonRandom.nextInt(_maxRandom - 1) + 1;
-
-        while (amount.size() - n < 0) {
-            _commonCondition.await();
+        while (amount.size() - portion < 0) {
+            commonCondition.await();
         }
 
-        for(int i = 0; i < n; i++) {
+        for(int i = 0; i < portion; i++) {
             amount.remove(0);
         }
 
-        _commonCondition.signal();
-        _commonLock.unlock();
-        _consumerLock.unlock();
+        commonCondition.signal();
+        commonLock.unlock();
+        consumerLock.unlock();
     }
 
     public synchronized void printAmount() {

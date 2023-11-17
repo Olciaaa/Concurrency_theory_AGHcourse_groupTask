@@ -1,5 +1,5 @@
 public interface ICosiek {
-    void consumer(int idx) throws InterruptedException;
-    void producer(int idx) throws InterruptedException;
+    void consume(int idx, int portion) throws InterruptedException;
+    void produce(int idx, int portion) throws InterruptedException;
     void printAmount();
 }
