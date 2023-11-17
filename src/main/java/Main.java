@@ -62,7 +62,7 @@ public class Main {
 //        System.out.printf("%-30s%sns\n", "Średni czas procesora:", TimeMeasure.deltaToString(meanCpuTime));
 //        System.out.printf("%-30s%sns\n", "Średni czas rzeczywisty: ", TimeMeasure.deltaToString(meanRealTime));
         String[] data = {USE_NESTED_LOCK_COSIEK ? "3-lock" : "4-condition",
-                TimeMeasure.deltaToString(meanCpuTime), TimeMeasure.deltaToString(meanRealTime),
+                String.valueOf(meanCpuTime), String.valueOf(meanRealTime),
                 String.valueOf(maxRandom), String.valueOf(maxBuffer),
                 String.valueOf(producers * producentCounter + consumers * consumerCounter),
                 USE_THREAD_LOCAL_RANDOM ? "Thread-Local" : "Global"
