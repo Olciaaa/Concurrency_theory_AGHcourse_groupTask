@@ -1,11 +1,11 @@
+import java.util.ArrayList;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 
 public class Cosiek implements ICosiek {
-    private final int _maxBufferLength;
-    private int _nItems = 0, _takePtr = 0, _putPtr = 0;
-    public int[] _buffer;
+    private final int maxBuffer;
+    public ArrayList<Integer> buffer;
 
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition
@@ -20,8 +20,8 @@ public class Cosiek implements ICosiek {
 
 
     public Cosiek(int maxBuffer) {
-        _maxBufferLength = maxBuffer;
-        _buffer = new int[_maxBufferLength];
+        this.maxBuffer = maxBuffer;
+        buffer = new ArrayList<>();
     }
 
     public void produce(int idx, int portion) throws InterruptedException {
@@ -31,7 +31,7 @@ public class Cosiek implements ICosiek {
             producersCondition.await();
         }
 
-        while (_nItems + portion > _maxBufferLength) {
+        while (buffer.size() + portion > maxBuffer) {
             isFirstProducerWaiting = true;
             firstProducerCondition.await();
         }
@@ -39,9 +39,7 @@ public class Cosiek implements ICosiek {
 
 
         for (int i = 0; i < portion; i++) {
-            _buffer[_putPtr] = 1;
-            _putPtr = (_putPtr + 1) % _maxBufferLength;
-            _nItems++;
+            buffer.add(1);
         }
 
 
@@ -58,7 +56,7 @@ public class Cosiek implements ICosiek {
             consumersCondition.await();
         }
 
-        while (_nItems - portion < 0) {
+        while (buffer.size() - portion < 0) {
             isFirstConsumerWaiting = true;
             firstConsumerCondition.await();
         }
@@ -66,9 +64,7 @@ public class Cosiek implements ICosiek {
 
 
         for (int i = 0; i < portion; i++) {
-            _buffer[_takePtr] = 0;
-            _takePtr = (_takePtr + 1) % _maxBufferLength;
-            _nItems--;
+            buffer.remove(0);
         }
 
 
@@ -79,6 +75,6 @@ public class Cosiek implements ICosiek {
     }
 
     public synchronized void printAmount() {
-        System.out.println("Counter value: " + _nItems);
+        System.out.println("Counter value: " + buffer.size());
     }
 }
